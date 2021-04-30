@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<header><title>Home.html</title></header>
+<body>Hello World Home.html
+
+<h2>Liste des employés</h2>
+<table>
+    <thead>
+    <tr>
+        <th>prenom</th>
+        <th>nom</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${employees.empty}">
+        <td>Aucun employé en bdd</td>
+    </tr>
+    <tr th:each="employee :  ${employees}">
+        <td><span th:text="${employee.firstName}"> Prénom </span></td>
+        <td><span th:text="${employee.lastName}"> Nom </span></td>
+        <td><a th:href="@{/deleteEmployee/{id}(id=${employee.id})}">Supprimer</a></td>
+    </tr>
+    </tbody>
+</table>
+<!--
+<form method="post" th:action="@{/saveEmployee}" th:object="${employee}">
+    <input type="text" th:field="*{firstName}">
+    <input type="text" th:field="*{lastName}">
+    <input type="text" th:field="*{mail}">
+    <input type="password" th:field="*{password}">
+    <button type="submit">Créer</button>
+</form>
+-->
+</body>
+</html>
