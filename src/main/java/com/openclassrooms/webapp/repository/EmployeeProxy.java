@@ -17,8 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class EmployeeProxy {
 
+    private static final String EMPLOYEE_SUFFIX = "/employees";
+
     @Autowired
     private CustomProperties props;
+
+    @SuppressWarnings("ConstantConditions")
+    private final String getEmployeesUrl = props.getApiUrl() + EMPLOYEE_SUFFIX;
 
     /**
      * Get all employees
@@ -27,91 +32,45 @@ public class EmployeeProxy {
      */
 
     public Iterable<Employee> getEmployees() {
-        String baseApiUrl = props.getApiUrl();
-        String getEmployeesUrl = baseApiUrl + "/employees";
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Iterable<Employee>> response = restTemplate.exchange(
-                getEmployeesUrl,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<Iterable<Employee>>() {
-                }
-        );
-
-        log.debug("Get Employees call " + response.getStatusCode().toString());
-
-        return response.getBody();
+        return communicate(HttpMethod.GET,"Get all Employees call " ).getBody();
     }
 
     public Employee getEmployee(final int id) {
-        String baseApiUrl = props.getApiUrl();
-        String getEmployeesUrl = baseApiUrl + "/employees/" + id;
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Employee> response = restTemplate.exchange(
-                getEmployeesUrl,
-                HttpMethod.GET,
-                null,
-                Employee.class
-        );
-
-        log.debug("Get Employees call " + response.getStatusCode().toString());
-
-        return response.getBody();
+        return communicate(id, Employee.class, HttpMethod.GET,"Get an Employee call " ).getBody();
     }
 
-    public Employee createEmployee(Employee e) {
-        String baseApiUrl = props.getApiUrl();
-        String getEmployeesUrl = baseApiUrl + "/employees";
-
-        RestTemplate restTemplate = new RestTemplate();
-        HttpEntity<Employee> entity = new HttpEntity<Employee>(e);
-        ResponseEntity<Employee> response = restTemplate.exchange(
-                getEmployeesUrl,
-                HttpMethod.POST,
-                entity,
-                Employee.class
-        );
-
-        log.debug("Get Employees call " + response.getStatusCode().toString());
-
-        return response.getBody();
+    public Employee createEmployee(final Employee employee) {
+        return communicate(employee, HttpMethod.POST,"Create Employees call " ).getBody();
     }
 
 
     public Employee updateEmployee(final Employee employee) {
-        String baseApiUrl = props.getApiUrl();
-        String getEmployeesUrl = baseApiUrl + "/employees";
-
-        RestTemplate restTemplate = new RestTemplate();
-        HttpEntity<Employee> entity = new HttpEntity<Employee>(employee);
-        ResponseEntity<Employee> response = restTemplate.exchange(
-                getEmployeesUrl,
-                HttpMethod.PUT,
-                entity,
-                Employee.class
-        );
-
-        log.debug("Get Employees call " + response.getStatusCode().toString());
-
-        return response.getBody();
+        return communicate(employee, HttpMethod.PUT,"Update Employees call " ).getBody();
     }
 
     public void deleteEmployee(final int id) {
-        String baseApiUrl = props.getApiUrl();
-        String getEmployeesUrl = baseApiUrl + "/employees/" + id;
+        communicate(id, Void.class, HttpMethod.DELETE,"Delete Employees call " );
+    }
 
-        RestTemplate restTemplate = new RestTemplate();
+    private ResponseEntity<Employee> communicate(Employee employee, HttpMethod httpMethod, String debugPrefix)
+    {
+        ResponseEntity<Employee> response = new RestTemplate().exchange(getEmployeesUrl, httpMethod, new HttpEntity<>(employee), Employee.class);
+        log.debug(debugPrefix + response.getStatusCode());
+        return response;
+    }
 
-        ResponseEntity response = restTemplate.exchange(
-                getEmployeesUrl,
-                HttpMethod.DELETE,
-                null,
-                Void.class
-        );
+    private <T> ResponseEntity<T> communicate(int id, Class<T> tClass, HttpMethod httpMethod, String debugPrefix)
+    {
+        ResponseEntity<T> response = new RestTemplate().exchange(getEmployeesUrl + "/" + id, httpMethod, null, tClass);
+        log.debug(debugPrefix + response.getStatusCode());
+        return response;
+    }
 
-        log.debug("Delete Employees call " + response.getStatusCode().toString());
-
+    private ResponseEntity<Iterable<Employee>> communicate(HttpMethod httpMethod, String debugPrefix)
+    {
+        ResponseEntity<Iterable<Employee>> response = new RestTemplate().exchange(getEmployeesUrl, httpMethod, null, new ParameterizedTypeReference<>() {});
+        log.debug(debugPrefix + response.getStatusCode());
+        return response;
     }
 }
